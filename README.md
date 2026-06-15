@@ -7,6 +7,26 @@
 
 로컬에서 보려면: `index.html` 더블클릭, 또는 `node server.js` → http://localhost:8848
 
+## ✏️ 내 버전으로 수정/배포하기 (누구나)
+이 저장소는 공개입니다. 누구나 받아서 자기 Claude Code/에디터에서 수정하고, 자기 Vercel로 배포할 수 있습니다.
+
+```bash
+# 1) 내려받기
+git clone https://github.com/performanceteam7-rgb/competitor-ad-monitor.git
+cd competitor-ad-monitor
+
+# 2) 바로 보기 (설치 불필요)
+node server.js          # → http://localhost:8848  (또는 index.html 더블클릭)
+
+# 3) 내 Vercel로 배포
+npx vercel --prod
+```
+
+- **Claude Code로 수정**: 위 폴더를 Claude Code로 열고 "○○ 바꿔줘"라고 요청하면 됩니다.
+- **화면만 고치기**: `index.html`(UI·차트) / `data.js`(데이터)만 만지면 됩니다.
+- **데이터 자동수집까지**: `collector/run_collect.py` 흐름 참고 (Windows + Chrome 필요).
+- 수집과 화면이 분리돼 있어 `data.js`만 교체하면 화면은 그대로 동작합니다.
+
 ## 파일 구조
 | 경로 | 역할 |
 |------|------|

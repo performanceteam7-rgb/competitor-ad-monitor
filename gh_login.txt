@@ -1,0 +1,7 @@
+
+! First copy your one-time code: E1C2-940B
+Open this URL to continue in your web browser: https://github.com/login/device
+✓ Authentication complete.
+- gh config set -h github.com git_protocol https
+✓ Configured git protocol
+✓ Logged in as performanceteam7-rgb
