@@ -4,4 +4,5 @@ node_modules/
 collector/logs/
 collector/copies.json
 *_out.txt
+gh_login.txt
 .DS_Store
