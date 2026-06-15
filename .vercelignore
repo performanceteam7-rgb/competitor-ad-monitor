@@ -1,0 +1,6 @@
+collector/
+docs/
+server.js
+*.py
+.claude/
+node_modules/

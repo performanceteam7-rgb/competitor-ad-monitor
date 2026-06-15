@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>경쟁사 광고 소재 모니터링 · 네이버웹툰</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+  :root{
+    --bg:#0a0b0e;
+    --line:rgba(255,255,255,.085); --line2:rgba(255,255,255,.055);
+    --txt:#eef0f5; --muted:#9097a6; --dim:#646b7a;
+    --naver:#00e070; --kakao:#ffd400; --ridi:#5b9bff;
+    --female:#ff6fae; --male:#5aa9ff; --all:#b89bff;
+    --ok:#34d39a; --warn:#f5b53f; --manual:#ff6b6b;
+    --accent:#00e070;
+    --num:'Plus Jakarta Sans','Pretendard',sans-serif;
+    --soft:0 1px 2px rgba(0,0,0,.4),0 14px 36px -14px rgba(0,0,0,.6);
+    --ease:cubic-bezier(.32,.72,0,1);
+    --cardbg:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.018));
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:'Pretendard','Plus Jakarta Sans',system-ui,sans-serif;
+    font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(58% 48% at 10% -6%, rgba(0,224,112,.10), transparent 60%),
+      radial-gradient(50% 44% at 102% -2%, rgba(91,155,255,.085), transparent 60%),
+      var(--bg)}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1320px;margin:0 auto;padding:34px 26px 64px}
+  h1,h2,h3{margin:0;font-weight:700;letter-spacing:-.02em}
+  .muted{color:var(--muted)} .dim{color:var(--dim);font-size:12px}
+  b{color:#fff;font-weight:700}
+
+  .panel{position:relative;background:var(--cardbg);border:1px solid var(--line);border-radius:22px;
+    padding:22px 24px;margin-bottom:20px;box-shadow:var(--soft),inset 0 1px 0 rgba(255,255,255,.05);
+    opacity:0;transform:translateY(22px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+  .panel.in{opacity:1;transform:none}
+  .sec-title{font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+  .sec-title .num{font-family:var(--num);background:linear-gradient(135deg,var(--accent),#06b357);color:#04130a;
+    width:24px;height:24px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:800;box-shadow:0 2px 10px rgba(0,224,112,.4)}
+
+  /* header */
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .eyebrow{display:inline-block;font-size:10.5px;text-transform:uppercase;letter-spacing:.24em;
+    color:var(--accent);font-weight:600;margin-bottom:10px}
+  .topbar h1{font-size:28px;letter-spacing:-.03em}
+  .topbar .sub{color:var(--muted);font-size:13px;margin-top:7px}
+  .updbar{display:flex;gap:13px;flex-wrap:wrap;font-size:12.5px;align-items:center;color:var(--muted)}
+  .updbar b{color:var(--txt)}
+  .legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:8px}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);
+    background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:14px}
+  .kpi{position:relative;background:var(--cardbg);border:1px solid var(--line);border-radius:16px;
+    padding:18px 18px 16px;overflow:hidden;box-shadow:var(--soft),inset 0 1px 0 rgba(255,255,255,.06)}
+  .kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line)}
+  .kpi.k-naver::before{background:var(--naver)} .kpi.k-kakao::before{background:var(--kakao)} .kpi.k-ridi::before{background:var(--ridi)}
+  .kpi .lab{font-size:12.5px;color:var(--muted);font-weight:600}
+  .kpi .big{font-family:var(--num);font-size:34px;font-weight:800;margin-top:6px;letter-spacing:-.03em}
+  .kpi .sub{font-size:12px;margin-top:8px;color:var(--muted)}
+  .up{color:var(--ok);font-weight:700} .down{color:var(--manual);font-weight:700}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.row2{grid-template-columns:1fr}}
+
+  /* bars */
+  .bar-row{display:flex;align-items:center;gap:12px;margin:9px 0}
+  .bar-row .name{width:88px;font-size:12.5px;color:var(--muted);flex:none;font-weight:600}
+  .stack{flex:1;height:24px;background:rgba(255,255,255,.04);border-radius:8px;overflow:hidden;display:flex;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
+  .stack span{height:100%;transition:width .9s var(--ease)}
+  .bar-row .tot{width:36px;text-align:right;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:13px;font-weight:700}
+
+  /* filters */
+  .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  select,input[type=search]{background:rgba(255,255,255,.04);color:var(--txt);border:1px solid var(--line);
+    border-radius:10px;padding:9px 13px;font-size:13px;font-family:inherit;transition:border-color .3s var(--ease),background .3s}
+  select:hover,input[type=search]:hover{border-color:rgba(255,255,255,.2)}
+  select:focus,input:focus{outline:none;border-color:var(--accent);background:rgba(0,224,112,.05)}
+  .count-pill{margin-left:auto;color:var(--muted);font-size:12.5px;font-weight:600}
+
+  /* gallery */
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));gap:18px}
+  .card{position:relative;background:var(--cardbg);border:1px solid var(--line);border-radius:18px;overflow:hidden;
+    display:flex;flex-direction:column;box-shadow:var(--soft);
+    transition:transform .5s var(--ease),border-color .5s var(--ease),box-shadow .5s var(--ease)}
+  .card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.2);
+    box-shadow:0 2px 6px rgba(0,0,0,.4),0 26px 50px -18px rgba(0,0,0,.72)}
+  .thumb{height:200px;display:flex;align-items:flex-end;justify-content:space-between;padding:12px;color:#fff;position:relative;overflow:hidden}
+  .thumb img{transition:transform .8s var(--ease)}
+  .card:hover .thumb img{transform:scale(1.06)}
+  .thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent 46%);pointer-events:none}
+  .thumb .ttl{position:relative;z-index:1;font-weight:800;font-size:15px;text-shadow:0 1px 6px rgba(0,0,0,.6);max-width:72%}
+  .thumb .play{position:absolute;top:10px;right:10px;z-index:2;background:rgba(0,0,0,.5);border-radius:8px;font-size:10px;padding:3px 8px}
+  .thumb .mockflag{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.45);font-size:9px;padding:3px 7px;border-radius:6px;letter-spacing:.5px}
+  .card .body{padding:13px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card .copy{font-size:12px;color:var(--muted);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .tags{display:flex;gap:6px;flex-wrap:wrap}
+  .tag{font-size:10.5px;padding:3px 9px;border-radius:8px;border:1px solid var(--line);color:var(--muted);font-weight:600}
+  .tag.g-female{color:var(--female);border-color:rgba(255,111,174,.3);background:rgba(255,111,174,.08)}
+  .tag.g-male{color:var(--male);border-color:rgba(90,169,255,.3);background:rgba(90,169,255,.08)}
+  .tag.g-all{color:var(--all);border-color:rgba(184,155,255,.3);background:rgba(184,155,255,.08)}
+  .tag.media{color:var(--txt)}
+  .card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;font-size:11px;color:var(--dim);border-top:1px solid var(--line2);padding-top:9px}
+  .badge{position:absolute;top:10px;right:10px;z-index:3}
+  .pill{font-size:9.5px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.04em;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+  .pill.new{background:linear-gradient(135deg,var(--accent),#06b357);color:#04130a} .pill.long{background:rgba(255,212,0,.16);color:var(--kakao);border:1px solid rgba(255,212,0,.3)} .pill.ended{background:rgba(255,255,255,.08);color:var(--muted)}
+  .conf{font-size:10px;font-weight:700}
+  .conf.정확{color:var(--ok)} .conf.추정{color:var(--warn)} .conf.수동{color:var(--manual)}
+
+  /* timeline / gantt */
+  .gantt-row{display:flex;align-items:center;gap:12px;margin:7px 0;font-size:12px}
+  .gantt-row .lab{width:210px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-weight:600}
+  .gantt-track{flex:1;height:18px;background:rgba(255,255,255,.04);border-radius:7px;position:relative;box-shadow:inset 0 1px 2px rgba(0,0,0,.3)}
+  .gantt-bar{position:absolute;height:100%;border-radius:7px;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:width .9s var(--ease)}
+  .gantt-row .days{width:48px;text-align:right;flex:none;font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--dim);font-weight:600}
+  .gantt-axis{display:flex;justify-content:space-between;color:var(--dim);font-size:11px;margin:6px 0 4px 222px}
+
+  /* insights */
+  .insights{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+  .ins{position:relative;background:var(--cardbg);border:1px solid var(--line);border-radius:16px;padding:18px;
+    overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .ins::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent)}
+  .ins h3{font-size:14px;margin-bottom:10px;display:flex;gap:8px;align-items:center}
+  .ins p{margin:0 0 6px;font-size:13px;color:#d2d6e0;line-height:1.55}
+  .ins .vs{font-size:12px;color:#aef5cf;background:rgba(0,224,112,.08);border:1px solid rgba(0,224,112,.18);
+    border-radius:10px;padding:9px 11px;margin-top:10px;line-height:1.5}
+  .ins .ico{font-size:17px}
+
+  /* 소재 제작 인사이트 */
+  .craft{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  @media(max-width:900px){.craft{grid-template-columns:1fr}}
+  .craft-card{position:relative;background:var(--cardbg);border:1px solid var(--line);border-radius:16px;padding:18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .craft-card.apply{border-color:rgba(0,224,112,.3);background:linear-gradient(180deg,rgba(0,224,112,.06),rgba(255,255,255,.02))}
+  .craft-card h3{font-size:13.5px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+  .craft-card .desc{font-size:11.5px;color:var(--dim);margin-bottom:12px}
+  .winrow{display:flex;align-items:center;gap:10px;margin:8px 0}
+  .winrow .wlab{flex:none;width:118px;font-size:12px;font-weight:600;color:#d2d6e0}
+  .winbar{flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}
+  .winbar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent),#06b357);transition:width .9s var(--ease)}
+  .winrow .wpct{flex:none;width:38px;text-align:right;font-family:var(--num);font-size:12px;font-weight:700;color:var(--accent)}
+  .craft-list{margin:0;padding:0;list-style:none}
+  .craft-list li{font-size:12px;color:#cfd4de;padding:7px 0;border-bottom:1px solid var(--line2);line-height:1.45}
+  .craft-list li:last-child{border-bottom:none}
+  .craft-list .t{font-weight:700;color:#fff}
+  .craft-list .meta{color:var(--dim);font-size:10.5px}
+  .craft-card.apply ul{margin:0;padding-left:0;list-style:none}
+  .craft-card.apply li{font-size:12.5px;color:#dfe3ea;padding:8px 0;display:flex;gap:8px;line-height:1.5}
+  .craft-card.apply li::before{content:'▸';color:var(--accent);font-weight:800;flex:none}
+  .craft-card.apply li,.craft-list li,.craft-card .desc{word-break:keep-all}
+  .craft-card.apply .t{white-space:nowrap}
+
+  /* weekly change */
+  .changes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .chg{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .chg .lab{font-size:12px;color:var(--muted);font-weight:600}
+  .chg .n{font-family:var(--num);font-size:28px;font-weight:800;margin-top:4px;letter-spacing:-.02em}
+  .chg ul{margin:10px 0 0;padding-left:16px;font-size:12px;color:var(--muted);line-height:1.7}
+  .footer{color:var(--dim);font-size:11.5px;text-align:center;padding:18px 0 10px;line-height:1.8}
+  svg{display:block}
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:8px;border:3px solid transparent;background-clip:content-box}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);background-clip:content-box}
+  /* CSV button */
+  .csv-btn{background:rgba(0,224,112,.1);color:var(--accent);border:1px solid rgba(0,224,112,.3);
+    border-radius:10px;padding:9px 14px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    transition:all .3s var(--ease)}
+  .csv-btn:hover{background:rgba(0,224,112,.18);transform:translateY(-1px)}
+  .csv-btn:active{transform:scale(.97)}
+  .tag.kind{background:rgba(255,255,255,.05)}
+  .tag.kind-brand{color:#cbd2dd;border-color:rgba(255,255,255,.18)}
+  /* 모바일 반응형 */
+  @media(max-width:640px){
+    .wrap{padding:22px 14px 48px}
+    .topbar h1{font-size:22px}
+    .topbar{flex-direction:column;align-items:flex-start;gap:12px}
+    .panel{padding:18px 15px;border-radius:18px}
+    .kpis{grid-template-columns:1fr 1fr;gap:10px}
+    .kpi .big{font-size:27px}
+    .gallery{grid-template-columns:1fr 1fr;gap:11px}
+    .thumb{height:150px}
+    .gantt-row .lab{width:120px}
+    .gantt-axis{margin-left:132px}
+    .filters{gap:7px}
+    select,input[type=search],.csv-btn{font-size:12px;padding:7px 9px}
+    .count-pill{margin-left:0;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1. HEADER -->
+  <div class="topbar">
+    <div>
+      <span class="eyebrow">Competitive Ad Intelligence · NAVER WEBTOON</span>
+      <h1>경쟁사 광고 소재 모니터링</h1>
+      <div class="sub">네이버웹툰 관점 · 카카오페이지 · 리디 — Meta(실수집) / Google · TikTok · Kakao</div>
+    </div>
+    <div class="updbar" id="updbar"></div>
+  </div>
+
+  <div class="panel" style="padding:12px 18px">
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- 1. 이번주 변경 요약 (최상단) -->
+  <div class="panel" style="margin-top:18px">
+    <div class="sec-title"><span class="num">1</span> 이번주 변경 요약</div>
+    <div class="changes" id="changes"></div>
+  </div>
+
+  <!-- 2. 인사이트 -->
+  <div class="panel">
+    <div class="sec-title"><span class="num">2</span> 인사이트 (데이터 기반 자동 생성)</div>
+    <div class="insights" id="insights"></div>
+  </div>
+
+  <!-- 3. 네웹KR 소재 제작 적용 인사이트 -->
+  <div class="panel">
+    <div class="sec-title"><span class="num">3</span> 네웹KR 소재 제작 적용 인사이트 <span class="dim" style="font-weight:400">— 경쟁사 소재에서 도출</span></div>
+    <div class="craft" id="craftInsights"></div>
+  </div>
+
+  <!-- 4. 타임라인 -->
+  <div class="panel">
+    <div class="sec-title"><span class="num">4</span> 노출기간 타임라인 (장수 소재 한눈에)</div>
+    <div class="gantt-axis" id="ganttAxis"></div>
+    <div id="gantt"></div>
+  </div>
+
+  <!-- 5. 물량·점유율 -->
+  <div class="row2">
+    <div class="panel">
+      <div class="sec-title"><span class="num">5</span> 매체별 소재 물량 · 점유율</div>
+      <div id="mediaBars"></div>
+      <div class="dim" style="margin-top:10px">막대 = 활성 소재 수. 색은 매체.</div>
+    </div>
+    <div class="panel">
+      <div class="sec-title"><span class="num">5</span> 주차별 활성 소재 추세 (WoW)</div>
+      <div id="trendChart"></div>
+    </div>
+  </div>
+
+  <!-- 6. 성향·장르 -->
+  <div class="row2">
+    <div class="panel">
+      <div class="sec-title"><span class="num">6</span> 성별 성향 비중 (vs 네이버웹툰)</div>
+      <div id="genderDonuts" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:space-around"></div>
+    </div>
+    <div class="panel">
+      <div class="sec-title"><span class="num">6</span> 장르 포커싱</div>
+      <div id="genreBars"></div>
+    </div>
+  </div>
+
+  <!-- ★ 실제 수집 샘플 (LIVE) -->
+  <div class="panel" id="realPanel" style="border-color:#1f6e3f;background:linear-gradient(180deg,#10211a,#171a21)">
+    <div class="sec-title"><span class="num" style="background:#ff4d4d;color:#fff">LIVE</span> 실제 수집 샘플 · Meta 광고 라이브러리</div>
+    <div id="realMeta" class="dim" style="margin-bottom:12px"></div>
+    <div class="gallery" id="realGallery"></div>
+  </div>
+
+  <!-- 6. 갤러리 -->
+  <div class="panel">
+    <div class="sec-title"><span class="num">7</span> 광고 소재 갤러리</div>
+    <div class="filters" id="filters">
+      <select id="fCompetitor"></select>
+      <select id="fKind"></select>
+      <select id="fMedia"></select>
+      <select id="fGender"></select>
+      <select id="fGenre"></select>
+      <select id="fActive"></select>
+      <select id="fSort"></select>
+      <input type="search" id="fSearch" placeholder="작품명 검색…" />
+      <button id="btnCsv" class="csv-btn">⬇ CSV 내보내기</button>
+      <span class="count-pill" id="galleryCount"></span>
+    </div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const D = window.AD_DATA;
+const TODAY = D.dateRange.max;
+const COMP_COLORS = {"네이버웹툰":"var(--naver)","카카오페이지":"var(--kakao)","리디":"var(--ridi)"};
+const MEDIA_COLORS = {google:"#ea4335", meta:"#0866ff", tiktok:"#25f4ee", kakao:"#ffcd00"};
+const MEDIA_LABEL = {google:"Google", meta:"Meta", tiktok:"TikTok", kakao:"Kakao"};
+const GENDER_COLORS = {female:"var(--female)", male:"var(--male)", all:"var(--all)"};
+const GENDER_LABEL = {female:"여성향", male:"남성향", all:"전체"};
+const GENRE_COLORS = {"로맨스":"#ff7eb3","로판":"#c084fc","BL":"#f472b6","액션":"#fb7185","판타지":"#60a5fa","무협":"#fbbf24","일상":"#34d399","드라마":"#38bdf8","스릴러":"#f87171","브랜드·뉴스":"#94a3b8","기타":"#7b8494"};
+
+const competitors = D.meta.competitors;          // 경쟁사 (네이버웹툰 제외)
+const OURS = D.meta.owner;                        // 네이버웹툰
+const hasNaver = D.creatives.some(c=>c.competitor===OURS);   // 자사 데이터 연동 여부
+const groups = hasNaver ? [...competitors, OURS] : [...competitors];
+
+// ---- utils ----
+function dParse(s){const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+function daysBetween(a,b){return Math.round((dParse(b)-dParse(a))/864e5);}
+function dur(c){return Math.max(1, daysBetween(c.first_seen,c.last_seen)+1);}
+function isNew(c){return daysBetween(c.first_seen, TODAY) <= 7;}      // 최근 7일 내 시작
+function isLong(c){return dur(c) >= 30;}
+function activeOf(comp){return D.creatives.filter(c=>c.competitor===comp && c.active);}
+function worksOf(list){return new Set(list.map(c=>c.work_title)).size;}
+function hashHue(s){let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))%360;return h;}
+
+// =================== 1. 헤더 갱신바 ===================
+const REAL = D.meta.dataMode === "real";
+document.getElementById("updbar").innerHTML = `
+  <span>갱신: <b>${D.meta.lastUpdated}</b></span>
+  <span>다음 갱신: <b>${D.meta.nextUpdate}</b></span>
+  <span>주차: <b>${D.meta.weekLabel}</b></span>
+  <span class="chip" style="${REAL?'border-color:#1f6e3f;color:#34d399':''}">${REAL?'🟢 실데이터 (Meta 자동수집)':'🟡 목업'}</span>
+  ${!hasNaver?`<span class="chip" style="border-color:#7a5b16;color:#f59e0b">⚠ 자사(네이버웹툰) Meta 데이터 미연동 — 자사 광고계정 연동 필요</span>`:''}`;
+if(D.meta.collectorNote){
+  const note=document.createElement("div"); note.className="dim"; note.style.marginTop="8px";
+  note.textContent="ℹ "+D.meta.collectorNote;
+  document.getElementById("legend").parentElement.appendChild(note);
+}
+
+document.getElementById("legend").innerHTML =
+  Object.entries(D.meta.sources).map(([k,s])=>{
+    const cc = s.confidence==="정확"?"var(--ok)":s.confidence==="추정"?"var(--warn)":"var(--manual)";
+    return `<span class="chip"><span class="dot" style="background:${MEDIA_COLORS[k]}"></span>${s.label}
+      · <span style="color:${cc}">${s.confidence}</span> <span class="dim">(${s.note})</span></span>`;
+  }).join("");
+
+// =================== 2. KPI ===================
+(function(){
+  const last = D.weeklyTrend[D.weeklyTrend.length-1];
+  const html = groups.map(comp=>{
+    const act = activeOf(comp);
+    const works = worksOf(act);
+    const newCnt = act.filter(isNew).length;
+    const prev = last[comp] || 0;
+    const wow = act.length - prev;
+    const cls = comp===OURS?"k-naver":comp==="카카오페이지"?"k-kakao":"k-ridi";
+    const wowTxt = wow===0?`<span class="muted">±0</span>`:
+       wow>0?`<span class="up">▲ ${wow}</span>`:`<span class="down">▼ ${Math.abs(wow)}</span>`;
+    const tag = comp===OURS?` <span class="dim">(우리)</span>`:"";
+    return `<div class="kpi ${cls}">
+      <div class="lab">${comp}${tag}</div>
+      <div class="big">${act.length}<span style="font-size:13px;color:var(--muted)"> 소재</span></div>
+      <div class="sub">작품 ${works}편 · 이번주 신규 <b class="up">${newCnt}</b> · 전주대비 ${wowTxt}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("kpis").innerHTML = html;
+})();
+
+// =================== 3. 매체별 스택 막대 ===================
+(function(){
+  const medias = Object.keys(MEDIA_LABEL);
+  const rows = groups.map(comp=>{
+    const act = activeOf(comp);
+    const total = act.length || 1;
+    const segs = medias.map(m=>{
+      const n = act.filter(c=>c.media===m).length;
+      return n? `<span title="${MEDIA_LABEL[m]} ${n}" style="width:${n/total*100}%;background:${MEDIA_COLORS[m]}"></span>`:"";
+    }).join("");
+    return `<div class="bar-row"><span class="name">${comp}</span>
+      <div class="stack">${segs}</div><span class="tot">${act.length}</span></div>`;
+  }).join("");
+  const leg = medias.map(m=>`<span class="chip"><span class="dot" style="background:${MEDIA_COLORS[m]}"></span>${MEDIA_LABEL[m]}</span>`).join("");
+  document.getElementById("mediaBars").innerHTML = rows + `<div class="legend" style="margin-top:12px">${leg}</div>`;
+})();
+
+// =================== 3b. 주차 추세 라인 (SVG) ===================
+(function(){
+  const data = D.weeklyTrend.slice();
+  // 현재 주(W24)는 데이터에서 활성 소재 수로 계산해 덧붙임
+  const cur = {week:"W24"}; groups.forEach(g=>cur[g]=activeOf(g).length);
+  data.push(cur);
+  const W=420,H=220,pad={l:30,r:12,t:14,b:24};
+  const maxV = Math.max(...data.flatMap(d=>groups.map(g=>d[g]||0)))*1.15;
+  const x = i=> pad.l + i*(W-pad.l-pad.r)/(data.length-1);
+  const y = v=> H-pad.b - (v/maxV)*(H-pad.t-pad.b);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+  for(let g=0; g<=4; g++){const v=maxV*g/4; svg+=`<line x1="${pad.l}" y1="${y(v)}" x2="${W-pad.r}" y2="${y(v)}" stroke="#23272f"/><text x="2" y="${y(v)+4}" fill="#6b7280" font-size="10">${Math.round(v)}</text>`;}
+  data.forEach((d,i)=>svg+=`<text x="${x(i)}" y="${H-8}" fill="#6b7280" font-size="10" text-anchor="middle">${d.week}</text>`);
+  groups.forEach(g=>{
+    const col = COMP_COLORS[g];
+    const pts = data.map((d,i)=>`${x(i)},${y(d[g]||0)}`).join(" ");
+    svg+=`<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+    data.forEach((d,i)=>svg+=`<circle cx="${x(i)}" cy="${y(d[g]||0)}" r="3" fill="${col}"/>`);
+  });
+  svg+="</svg>";
+  const leg = groups.map(g=>`<span class="chip"><span class="dot" style="background:${COMP_COLORS[g]}"></span>${g}</span>`).join("");
+  document.getElementById("trendChart").innerHTML = svg + `<div class="legend" style="margin-top:8px">${leg}</div>`;
+})();
+
+// =================== 4. 성별 도넛 ===================
+(function(){
+  function donut(comp){
+    const act = activeOf(comp);
+    const total = act.length||1;
+    const segs = ["female","male","all"].map(g=>({g, n:act.filter(c=>c.gender===g).length}));
+    const R=46,C=2*Math.PI*R; let off=0;
+    let circles="";
+    segs.forEach(s=>{
+      const frac=s.n/total;
+      circles+=`<circle cx="60" cy="60" r="${R}" fill="none" stroke="${GENDER_COLORS[s.g]}" stroke-width="16"
+        stroke-dasharray="${frac*C} ${C}" stroke-dashoffset="${-off*C}" transform="rotate(-90 60 60)"/>`;
+      off+=frac;
+    });
+    const dom = segs.slice().sort((a,b)=>b.n-a.n)[0];
+    return `<div style="text-align:center">
+      <svg viewBox="0 0 120 120" width="130" height="130">${circles}
+        <text x="60" y="56" text-anchor="middle" fill="#e7e9ee" font-size="13" font-weight="700">${comp}</text>
+        <text x="60" y="74" text-anchor="middle" fill="#9aa3b2" font-size="11">${act.length}소재</text></svg>
+      <div class="dim">주력: <b style="color:${GENDER_COLORS[dom.g]}">${GENDER_LABEL[dom.g]}</b> ${Math.round(dom.n/total*100)}%</div>
+    </div>`;
+  }
+  const leg = ["female","male","all"].map(g=>`<span class="chip"><span class="dot" style="background:${GENDER_COLORS[g]}"></span>${GENDER_LABEL[g]}</span>`).join("");
+  document.getElementById("genderDonuts").innerHTML = groups.map(donut).join("") +
+    `<div style="flex-basis:100%;text-align:center" class="legend">${leg}</div>`;
+})();
+
+// =================== 4b. 장르 막대 (그룹별 비교) ===================
+(function(){
+  const allGenres = [...new Set(D.creatives.map(c=>c.genre))];
+  // 활성 소재 기준 그룹×장르 카운트
+  const maxV = Math.max(...allGenres.map(gn=>Math.max(...groups.map(comp=>activeOf(comp).filter(c=>c.genre===gn).length))))||1;
+  let html = "";
+  allGenres.forEach(gn=>{
+    const subbars = groups.map(comp=>{
+      const n = activeOf(comp).filter(c=>c.genre===gn).length;
+      return `<div class="bar-row" style="margin:2px 0">
+        <span class="name" style="width:70px;font-size:11px;color:${COMP_COLORS[comp]}">${comp}</span>
+        <div class="stack" style="height:14px;background:transparent">
+          <span style="width:${n/maxV*100}%;background:${GENRE_COLORS[gn]||'#888'};border-radius:4px"></span></div>
+        <span class="tot" style="width:24px">${n}</span></div>`;
+    }).join("");
+    html += `<div style="margin-bottom:12px"><div style="font-size:12.5px;font-weight:700;color:${GENRE_COLORS[gn]||'#ccc'};margin-bottom:2px">${gn}</div>${subbars}</div>`;
+  });
+  document.getElementById("genreBars").innerHTML = html;
+})();
+
+// =================== ★ 실제 수집 샘플 (LIVE) ===================
+(function(){
+  const rs = D.realSamples;
+  if(!rs){ document.getElementById("realPanel").style.display="none"; return; }
+  const a = rs.ad;
+  document.getElementById("realMeta").innerHTML =
+    `🔴 <b style="color:#34d399">실제 데이터</b> · ${rs.collectedAt} 수집 · 광고주 <b>${a.advertiser}</b> ·
+     매체 <b style="color:${MEDIA_COLORS[a.media]}">${MEDIA_LABEL[a.media]}</b> ·
+     라이브러리 ID ${a.libId} · 게재 시작 ${a.startDate} ·
+     <span class="conf ${a.confidence}">●${a.confidence}</span><br>
+     <span style="color:var(--dim)">${rs.note}</span>`;
+  document.getElementById("realGallery").innerHTML = rs.slides.map(s=>`
+    <div class="card">
+      <img src="${s.img}" alt="${s.caption}" loading="lazy"
+        style="width:100%;height:230px;object-fit:cover;background:#000" />
+      <div class="body">
+        <div class="copy">${s.caption}</div>
+        <div class="tags">
+          <span class="tag media" style="color:${MEDIA_COLORS[a.media]}">${MEDIA_LABEL[a.media]}</span>
+          <span class="tag" style="color:var(--kakao)">${a.competitor}</span>
+          <span class="tag">${a.type}</span>
+        </div>
+        <div class="foot"><span>게재 시작 ${a.startDate}</span><span class="conf ${a.confidence}">●${a.confidence}</span></div>
+      </div>
+    </div>`).join("");
+})();
+
+// =================== 5. 갤러리 + 필터 ===================
+(function(){
+  const opt=(arr,all)=>[`<option value="">${all}</option>`,...arr.map(v=>`<option value="${v}">${v}</option>`)].join("");
+  document.getElementById("fCompetitor").innerHTML = opt(groups,"전체 사업자");
+  document.getElementById("fMedia").innerHTML = opt(Object.keys(MEDIA_LABEL).map(m=>m),"전체 매체").replace(/>(\w+)</g,(x,m)=>`>${MEDIA_LABEL[m]||m}<`);
+  // media labels fix:
+  document.getElementById("fMedia").innerHTML = `<option value="">전체 매체</option>`+Object.keys(MEDIA_LABEL).map(m=>`<option value="${m}">${MEDIA_LABEL[m]}</option>`).join("");
+  document.getElementById("fGender").innerHTML = `<option value="">전체 성향</option>`+["female","male","all"].map(g=>`<option value="${g}">${GENDER_LABEL[g]}</option>`).join("");
+  document.getElementById("fGenre").innerHTML = opt([...new Set(D.creatives.map(c=>c.genre))],"전체 장르");
+  document.getElementById("fActive").innerHTML = `<option value="">전체 상태</option><option value="active">게재중</option><option value="ended">종료</option>`;
+  document.getElementById("fSort").innerHTML = `<option value="new">최신순</option><option value="dur">노출기간 긴순</option><option value="comp">사업자순</option>`;
+  const kinds = [...new Set(D.creatives.map(c=>c.ad_kind).filter(Boolean))];
+  document.getElementById("fKind").innerHTML = `<option value="">전체 유형</option>`+kinds.map(k=>`<option value="${k}">${k}</option>`).join("");
+
+  function thumb(c){
+    const h = hashHue(c.work_title);
+    return `linear-gradient(135deg, hsl(${h} 55% 32%), hsl(${(h+40)%360} 60% 22%))`;
+  }
+  function pill(c){
+    if(!c.active) return `<span class="pill ended">종료</span>`;
+    if(isNew(c)) return `<span class="pill new">NEW</span>`;
+    if(isLong(c)) return `<span class="pill long">장수 ${dur(c)}일</span>`;
+    return "";
+  }
+  let CURRENT = [];
+  function render(){
+    const fc=fCompetitor.value, fk=fKind.value, fm=fMedia.value, fg=fGender.value, fge=fGenre.value, fa=fActive.value, q=fSearch.value.trim();
+    let list = D.creatives.filter(c=>
+      (!fc||c.competitor===fc)&&(!fk||c.ad_kind===fk)&&(!fm||c.media===fm)&&(!fg||c.gender===fg)&&(!fge||c.genre===fge)&&
+      (!fa|| (fa==="active"?c.active:!c.active))&&(!q||(c.work_title||"").includes(q)||(c.copy||"").includes(q)));
+    const s=fSort.value;
+    list.sort((a,b)=> s==="dur"? dur(b)-dur(a) : s==="comp"? a.competitor.localeCompare(b.competitor) : dParse(b.first_seen)-dParse(a.first_seen));
+    CURRENT = list;
+    galleryCount.textContent = `${list.length}건 표시 / 전체 ${D.creatives.length}건`;
+    gallery.innerHTML = list.map(c=>`
+      <div class="card">
+        <div class="thumb" style="${c.image?`background:#000;padding:0`:`background:${thumb(c)}`}">
+          ${c.image
+            ? `<img src="${c.image}" alt="${c.work_title}" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentElement.style.background='${thumb(c)}'"/>`
+            : `<span class="mockflag">광고 이미지 (목업)</span>`}
+          ${c.type==="video"?`<span class="play">▶ 영상</span>`:""}
+          ${c.image?"":`<span class="ttl">${c.work_title}</span>`}
+          <span class="badge">${pill(c)}</span>
+        </div>
+        <div class="body">
+          <div class="copy">"${c.copy}"</div>
+          <div class="tags">
+            <span class="tag media" style="color:${MEDIA_COLORS[c.media]}">${MEDIA_LABEL[c.media]}</span>
+            ${c.ad_kind==="브랜드·뉴스"?`<span class="tag kind kind-brand">브랜드·뉴스</span>`:""}
+            <span class="tag g-${c.gender}">${GENDER_LABEL[c.gender]}</span>
+            <span class="tag" style="color:${GENRE_COLORS[c.genre]||'#ccc'}">${c.genre}</span>
+          </div>
+          <div class="foot">
+            <span>${c.first_seen} ~ ${c.active?"게재중":c.last_seen} · <b style="color:#cbd2dd">${dur(c)}일</b></span>
+            <span class="conf ${c.confidence}">●${c.confidence}</span>
+          </div>
+          <div class="dim" style="font-size:10.5px">${c.competitor}</div>
+        </div>
+      </div>`).join("") || `<div class="muted">조건에 맞는 소재가 없습니다.</div>`;
+  }
+  ["fCompetitor","fKind","fMedia","fGender","fGenre","fActive","fSort"].forEach(id=>document.getElementById(id).addEventListener("change",render));
+  document.getElementById("fSearch").addEventListener("input",render);
+
+  // CSV 내보내기 (현재 필터된 목록)
+  document.getElementById("btnCsv").addEventListener("click", ()=>{
+    const cols = ["competitor","ad_kind","work_title","gender","genre","media","first_seen","last_seen","duration_days","active","advertiser","libId","confidence","copy"];
+    const head = ["사업자","유형","작품명","성향","장르","매체","게재시작","최종확인","노출일수","게재중","광고주","라이브러리ID","정확도","카피"];
+    const esc = v => `"${String(v??"").replace(/"/g,'""')}"`;
+    const rows = CURRENT.map(c=>cols.map(k=>esc(c[k])).join(","));
+    const csv = "﻿" + [head.join(","), ...rows].join("\r\n");  // BOM=엑셀 한글
+    const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `경쟁사광고_${D.meta.weekLabel||"export"}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+  render();
+})();
+
+// =================== 6. 타임라인 (간트) ===================
+(function(){
+  const min=D.dateRange.min, max=D.dateRange.max;
+  const span=daysBetween(min,max)||1;
+  const list = D.creatives.slice().sort((a,b)=>dur(b)-dur(a)).slice(0,18);
+  const pos=d=>daysBetween(min,d)/span*100;
+  document.getElementById("ganttAxis").innerHTML = `<span>${min}</span><span>${TODAY} (오늘)</span>`;
+  document.getElementById("gantt").innerHTML = list.map(c=>{
+    const left=pos(c.first_seen), w=Math.max(1.5,pos(c.last_seen)-left);
+    return `<div class="gantt-row">
+      <span class="lab" style="color:${COMP_COLORS[c.competitor]}">${c.work_title} <span class="dim">·${MEDIA_LABEL[c.media]}</span></span>
+      <div class="gantt-track"><div class="gantt-bar" style="left:${left}%;width:${w}%;background:${COMP_COLORS[c.competitor]}"
+        title="${c.first_seen}~${c.last_seen}"></div></div>
+      <span class="days">${dur(c)}일</span></div>`;
+  }).join("");
+})();
+
+// =================== 3. 네웹 소재 제작 적용 인사이트 ===================
+(function(){
+  const COMP = D.creatives.filter(c => competitors.includes(c.competitor)); // 경쟁사만
+  // 후킹 카테고리 사전 (카피에서 위닝 패턴 탐지)
+  const HOOKS = {
+    "압도적 수치·인기": ["억뷰","억 뷰","조회수","1황","sss","SSS","최강","역대급","압도적","먼치킨","화 이상","최고의"],
+    "무료·혜택 후킹": ["무료","할인","혜택","포인트백","기다리면","%"],
+    "호기심 갭(질문·반전)": ["?!","??","운명은","비밀","반전","그런데","줄 알았는데","이유","어떻게"],
+    "몰입·정주행 강조": ["정주행","몰아","끊김","도파민","사이다","과몰입","제맛","완결","시즌"],
+    "관계 텐션(집착·혐관 등)": ["집착","혐관","계약","짝사랑","구원","복수","결혼","약혼","남주","첫사랑","운명의 상대"],
+    "작가·원작 IP 파워": ["작가","원작","웹툰화","웹툰으로","소설"],
+    "신작·이벤트 런칭": ["론칭","신작","컴백","상륙","드디어","출시","웹툰 <","상륙!"],
+  };
+  function analyze(set){
+    const total = set.length || 1;
+    const rows = Object.entries(HOOKS).map(([k,kws])=>{
+      const n = set.filter(c => kws.some(w => (c.copy||"").includes(w))).length;
+      return {k, n, pct: Math.round(n/total*100)};
+    }).filter(r=>r.n>0).sort((a,b)=>b.pct-a.pct);
+    return rows;
+  }
+  function distinct(list){ // 작품명 기준 dedupe, 대표 1건
+    const seen=new Set(), out=[];
+    for(const c of list){ const key=c.work_title||c.id; if(seen.has(key))continue; seen.add(key); out.push(c); }
+    return out;
+  }
+  const fmtCopy = s => (s||"").replace(/#\S+/g,"").replace(/HTTPS?:\S+/gi,"").replace(/LINK-\S+|FB\.COM|\d:\d\d ?\/ ?\d:\d\d/gi,"").replace(/\s+/g," ").trim().slice(0,52);
+
+  // ① 장기 운영 위닝 (경쟁사, 노출기간 상위)
+  const longCre = COMP.slice().sort((a,b)=>dur(b)-dur(a));
+  const longThresh = Math.max(7, dur(longCre[Math.floor(longCre.length*0.4)]||longCre[0]||{first_seen:TODAY,last_seen:TODAY}));
+  const longSet = longCre.filter(c=>dur(c)>=longThresh);
+  const longUse = longSet.length>=5? longSet : longCre.slice(0,12);
+  const longWins = analyze(longUse);
+  const longTop = distinct(longUse).slice(0,5);
+
+  // ② 최근 7일 신규 (경쟁사)
+  const newSet = COMP.filter(isNew);
+  const newWins = analyze(newSet);
+  const newTop = distinct(newSet).slice(0,5);
+
+  // ③ 네웹 적용 제언 (계산 기반)
+  const compVideo = COMP.filter(c=>c.type==="video").length;
+  const naverAct = D.creatives.filter(c=>c.competitor===OURS);
+  const naverVideo = naverAct.filter(c=>c.type==="video").length;
+  const compFemalePct = Math.round(COMP.filter(c=>c.gender==="female").length / (COMP.length||1) * 100);
+  const apply = [];
+  if(longWins[0]) apply.push(`장기 위닝 소재의 #1 공통점은 <b class="t">${longWins[0].k}</b>(${longWins[0].pct}%) — 네웹 소재 카피 최상단에 우선 배치 테스트`);
+  if(longWins[1]) apply.push(`이어 <b class="t">${longWins[1].k}</b>(${longWins[1].pct}%)가 검증된 요소 — 썸네일·첫 문장에 결합`);
+  if(newWins[0]) apply.push(`최근 7일 신규 트렌드 강조점은 <b class="t">${newWins[0].k}</b> — 신작 소재 기획 시 반영`);
+  apply.push(`경쟁사 여성향(BL·로판·로맨스) 비중 <b class="t">${compFemalePct}%</b> vs 네웹은 남성향(취사병) 집중 — 여성향 라인업 소재 다변화 여지`);
+  apply.push(`경쟁사 영상 소재 <b class="t">${compVideo}건</b> vs 네웹 ${naverVideo}건 — ${naverVideo<compVideo? "숏폼 영상 포맷 도입 우선 검토":"영상 비중 양호"}`);
+
+  function winBlock(rows){
+    return rows.slice(0,5).map(r=>`<div class="winrow"><span class="wlab">${r.k}</span>
+      <div class="winbar"><span style="width:${r.pct}%"></span></div><span class="wpct">${r.pct}%</span></div>`).join("");
+  }
+  function listBlock(items){
+    return `<ul class="craft-list">`+items.map(c=>`<li><span class="t">${c.work_title}</span>
+      <span class="meta">· ${c.competitor} · ${dur(c)}일</span><br><span class="meta" style="color:#9097a6">"${fmtCopy(c.copy)}"</span></li>`).join("")+`</ul>`;
+  }
+
+  document.getElementById("craftInsights").innerHTML = `
+    <div class="craft-card">
+      <h3>🏆 장기 운영 소재 공통 위닝 포인트</h3>
+      <div class="desc">노출기간 ${longThresh}일+ 경쟁사 소재 ${longUse.length}건 분석 · 검증된 효자 요소</div>
+      ${winBlock(longWins)}
+      <div class="desc" style="margin:12px 0 4px">대표 장수 소재</div>
+      ${listBlock(longTop)}
+    </div>
+    <div class="craft-card">
+      <h3>🆕 최근 7일 신규 소재 핵심 USP</h3>
+      <div class="desc">최근 7일 라이브 경쟁사 소재 ${newSet.length}건 · 지금 미는 강조 포인트</div>
+      ${newWins.length?winBlock(newWins):'<div class="dim">신규 소재 없음</div>'}
+      <div class="desc" style="margin:12px 0 4px">신규 작품</div>
+      ${newTop.length?listBlock(newTop):'<div class="dim">—</div>'}
+    </div>
+    <div class="craft-card apply">
+      <h3>🎯 네웹KR 소재 제작 적용 제언</h3>
+      <div class="desc">위 분석 → 바로 적용 가능한 액션</div>
+      <ul>${apply.map(a=>`<li>${a}</li>`).join("")}</ul>
+    </div>`;
+})();
+
+// =================== 7. 인사이트 (자동 생성) ===================
+(function(){
+  const stat = {};
+  groups.forEach(g=>{
+    const act=activeOf(g);
+    const byMedia={}; Object.keys(MEDIA_LABEL).forEach(m=>byMedia[m]=act.filter(c=>c.media===m).length);
+    const topMedia=Object.entries(byMedia).sort((a,b)=>b[1]-a[1])[0];
+    const byGender={female:0,male:0,all:0}; act.forEach(c=>byGender[c.gender]++);
+    const topGender=Object.entries(byGender).sort((a,b)=>b[1]-a[1])[0];
+    const byGenre={}; act.forEach(c=>byGenre[c.genre]=(byGenre[c.genre]||0)+1);
+    const topGenre=Object.entries(byGenre).sort((a,b)=>b[1]-a[1])[0];
+    stat[g]={act, byMedia, topMedia, byGender, topGender, byGenre, topGenre,
+      avgDur: Math.round(act.reduce((s,c)=>s+dur(c),0)/(act.length||1)),
+      video: act.filter(c=>c.type==="video").length, newCnt: act.filter(isNew).length};
+  });
+  const ours = hasNaver ? stat[OURS] : null;
+  const PENDING = `<span style="color:var(--warn)">자사(네이버웹툰) Meta 데이터 미연동</span> — 자사 광고계정 연동 시 비교 표시`;
+  const totComp = competitors.reduce((s,c)=>s+stat[c].act.length,0);
+  const cards=[];
+
+  // ① 물량 / 점유율
+  const leader = competitors.slice().sort((a,b)=>stat[b].act.length-stat[a].act.length)[0];
+  cards.push({ico:"📊", title:"물량 · 점유율",
+    body:`경쟁사 활성 소재 총 <b>${totComp}건</b> 중 <b style="color:${COMP_COLORS[leader]}">${leader}</b>가 ${stat[leader].act.length}건으로 최다.
+      <b>${leader}</b>의 주력 매체는 <b>${MEDIA_LABEL[stat[leader].topMedia[0]]}</b>(${stat[leader].topMedia[1]}건).`,
+    vs: ours?`네이버웹툰은 ${ours.act.length}건. 경쟁사 합산 대비 <b>${Math.round(ours.act.length/(totComp+ours.act.length)*100)}%</b> 점유 — 물량 ${ours.act.length>=stat[leader].act.length?"우위":"열위"}.`:PENDING});
+
+  // ② 성향 / 장르 포커싱
+  const focusTxt = competitors.map(c=>`${c}=${GENDER_LABEL[stat[c].topGender[0]]}·${stat[c].topGenre[0]}`).join(" / ");
+  const ridiStat = stat["리디"];
+  cards.push({ico:"🎯", title:"성향 · 장르 포커싱",
+    body:`경쟁사 집중 영역 → <b>${focusTxt}</b>.${ridiStat?` 특히 <b style="color:var(--ridi)">리디</b>는 <b style="color:var(--female)">${GENDER_LABEL[ridiStat.topGender[0]]}</b> 편중.`:""}`,
+    vs: ours?`네이버웹툰 주력은 <b>${GENDER_LABEL[ours.topGender[0]]}·${ours.topGenre[0]}</b>. ${ours.topGender[0]==="male"?"남성향 IP 비중이 경쟁사보다 높아 차별점":"여성향 경쟁이 직접 겹침 — 소재 차별화 필요"}.`:PENDING});
+
+  // ③ 신규 감지
+  const newby = competitors.map(c=>`${c} ${stat[c].newCnt}건`).join(", ");
+  const newTitles = competitors.flatMap(c=>stat[c].act.filter(isNew).map(x=>x.work_title)).filter(t=>t&&t!=="(미상)");
+  cards.push({ico:"🆕", title:"신규 소재 감지 (최근 7일)",
+    body:`이번주 신규 시작 소재 — ${newby}. 신규 푸시 작품: <b>${[...new Set(newTitles)].slice(0,5).join(", ")||"(작품명 추출 중)"}</b>.`,
+    vs: ours?`네이버웹툰 신규 ${ours.newCnt}건.`:`경쟁사 신규 푸시는 신작/프로모션 신호 — 대응 모니터링 권장. (${PENDING})`});
+
+  // ④ 수명 / 크리에이티브 패턴
+  const longest = D.creatives.filter(c=>competitors.includes(c.competitor)).slice().sort((a,b)=>dur(b)-dur(a))[0];
+  const compVideo = competitors.reduce((s,c)=>s+stat[c].video,0);
+  cards.push({ico:"⏳", title:"수명 · 크리에이티브 패턴",
+    body:`경쟁사 평균 노출기간 약 <b>${Math.round(competitors.reduce((s,c)=>s+stat[c].avgDur,0)/competitors.length)}일</b>.
+      ${longest?`최장수 소재: <b>${longest.work_title}</b>(${dur(longest)}일, ${longest.competitor}) — 검증된 효자 소재 가능성.`:""}
+      경쟁사 영상 소재 ${compVideo}건.`,
+    vs: ours?`네이버웹툰 평균 ${ours.avgDur}일 · 영상 ${ours.video}건.`:PENDING});
+
+  document.getElementById("insights").innerHTML = cards.map(c=>`
+    <div class="ins"><h3><span class="ico">${c.ico}</span>${c.title}</h3>
+      <p>${c.body}</p><div class="vs">vs 네이버웹툰 — ${c.vs}</div></div>`).join("");
+})();
+
+// =================== 8. 주간 변경 요약 ===================
+(function(){
+  const last=D.weeklyTrend[D.weeklyTrend.length-1];
+  const newAll = D.creatives.filter(c=>isNew(c));
+  const endedRecent = D.creatives.filter(c=>!c.active && daysBetween(c.last_seen,TODAY)<=14);
+  const wowComp = competitors.map(c=>{
+    const wow=activeOf(c).length-(last[c]||0);
+    return `${c}: ${wow>=0?"+":""}${wow}`;
+  }).join(" · ");
+  document.getElementById("changes").innerHTML = `
+    <div class="chg"><div class="lab muted">이번주 신규 소재</div><div class="n up">+${newAll.length}</div>
+      <ul>${newAll.slice(0,5).map(c=>`<li>${c.work_title} <span class="dim">${c.competitor}·${MEDIA_LABEL[c.media]}</span></li>`).join("")}</ul></div>
+    <div class="chg"><div class="lab muted">최근 종료 소재(14일)</div><div class="n down">−${endedRecent.length}</div>
+      <ul>${endedRecent.slice(0,5).map(c=>`<li>${c.work_title} <span class="dim">${c.competitor}</span></li>`).join("")||"<li class='dim'>없음</li>"}</ul></div>
+    <div class="chg"><div class="lab muted">전주대비 물량(WoW)</div><div class="n">${wowComp}</div>
+      <ul><li>네이버웹툰: ${activeOf(OURS).length-(last[OURS]||0)>=0?"+":""}${activeOf(OURS).length-(last[OURS]||0)}</li></ul></div>`;
+})();
+
+document.getElementById("footer").innerHTML =
+  `광고 이미지·게재일·노출기간은 <b>Meta 광고 라이브러리 실수집(정확)</b> · 성향·장르·작품명은 카피 기반 휴리스틱(추정).<br>
+   Google Transparency Center · TikTok Creative Center 수집 예정 · Kakao는 공식 라이브러리 없음(수동) · 주 1회 자동 갱신.`;
+
+// ===== 진입 애니메이션 (panel reveal) =====
+(function(){
+  const panels=[...document.querySelectorAll('.panel')];
+  if(!('IntersectionObserver' in window)){ panels.forEach(p=>p.classList.add('in')); return; }
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:.08, rootMargin:'0px 0px -40px 0px'});
+  panels.forEach(p=>io.observe(p));
+  // 안전장치: 1.2초 후 남은 패널 강제 표시
+  setTimeout(()=>panels.forEach(p=>p.classList.add('in')), 1200);
+})();
+</script>
+</body>
+</html>

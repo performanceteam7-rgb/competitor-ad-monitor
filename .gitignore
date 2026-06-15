@@ -1,0 +1,7 @@
+node_modules/
+.vercel
+.env
+collector/logs/
+collector/copies.json
+*_out.txt
+.DS_Store
