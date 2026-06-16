@@ -26,15 +26,23 @@ TODAY = os.environ.get("BH_TODAY", "2026-06-11")  # run_weekly.ps1이 BH_TODAY�
 # ---- 수집 대상 (경쟁사 + 우리) -----------------------------------------
 # advertiser_tokens: 해당 토큰을 광고주명에 포함하면 그 사업자 광고로 인정 (제3자 노이즈 제거)
 # q+advertiser_tokens = 키워드 검색(제3자 필터), page_id = 특정 페이지 전체(노이즈 0)
+# category: 웹툰 | OTT
 TARGETS = [
-    {"competitor": "카카오페이지", "q": "카카오페이지",
+    # ── 웹툰/웹소설 경쟁사 ──
+    {"competitor": "카카오페이지", "category":"웹툰", "q": "카카오페이지",
      "advertiser_tokens": ["kakaopage", "kakao.entertainment", "kakaoent", "kakao_page", "카카오페이지"]},
-    {"competitor": "리디",         "q": "리디북스",
+    {"competitor": "리디",         "category":"웹툰", "q": "리디북스",
      "advertiser_tokens": ["ridi", "리디"]},
-    {"competitor": "리디",         "q": "리디",
+    {"competitor": "리디",         "category":"웹툰", "q": "리디",
      "advertiser_tokens": ["ridi", "리디"]},
-    # 자사: 공식 페이지(facebook.com/nwebtoon) 전체 — page_id 기반, 화이트리스트 불필요
-    {"competitor": "네이버웹툰",   "page_id": "700492680053373"},
+    # 자사: 공식 페이지(facebook.com/nwebtoon) — page_id 기반
+    {"competitor": "네이버웹툰",   "category":"웹툰", "page_id": "700492680053373"},
+    # ── OTT (page_id 기반, 공식 페이지 전체) ──
+    {"competitor": "넷플릭스",     "category":"OTT", "page_id": "927701797321428"},
+    {"competitor": "티빙",         "category":"OTT", "page_id": "157630184278168"},
+    {"competitor": "웨이브",       "category":"OTT", "page_id": "1470492576566418"},
+    {"competitor": "쿠팡플레이",   "category":"OTT", "page_id": "100649765217814"},
+    {"competitor": "디즈니+",      "category":"OTT", "page_id": "319549278583533"},
 ]
 
 # ---- 분류 사전 (휴리스틱 → confidence '추정') ---------------------------
@@ -165,17 +173,26 @@ def _is_brand(s):
     sl = s.lower()
     return any(b in sl for b in [x.lower() for x in BRAND_BLACKLIST])
 
+GENRE_WORDS = {"웹툰","웹소설","웹툰추천","애니","애니추천","리뷰","웹툰리뷰","개그","일상","로맨스","로판",
+               "판타지","액션","무협","스릴러","드라마","BL","사이코패스","현판","순정","군대","군대썰","kakaopage"}
 def extract_title(text):
-    # 괄호류 제목 우선
+    # '제목 : XXX' / '정보 : XXX (네이버웹툰)' 패턴 최우선
+    for pat in [r"제목\s*[:：]\s*([^\n#(]{2,30})",
+                r"정보\s*[:：]\s*([^\n#(]{2,30})"]:
+        m = re.search(pat, text)
+        if m:
+            cand = m.group(1).strip().rstrip("(").strip()
+            if cand and not _is_brand(cand): return cand
+    # 괄호류 제목
     for pat in [r"[<《〈]([^<>《》〈〉]{2,30})[>》〉]",
                 r"[「『]([^」』]{2,30})[」』]"]:
         for m in re.finditer(pat, text):
             cand = m.group(1).strip()
             if cand and not _is_brand(cand): return cand
-    # 해시태그 중 브랜드어 아닌 첫 번째
+    # 해시태그 중 브랜드어·장르어 아닌 첫 번째
     for m in re.finditer(r"#([^\s#]{2,20})", text):
         cand = m.group(1).strip()
-        if cand and not _is_brand(cand): return cand
+        if cand and not _is_brand(cand) and cand not in GENRE_WORDS: return cand
     # 폴백: 첫 구절 앞부분 (이모지·구두점·체크표시 전까지)
     clean = re.split(r"[.!?\n。…💥🎊🔥✨▶➡👉|·✓✔]", text.strip(), 1)[0].strip()
     clean = re.sub(r"^[\s\"'·\-_✓✔🎊🎉💥]+", "", clean).strip()
@@ -225,17 +242,17 @@ EXTRACT_JS = r"""
 def card_count():
     return js("document.body.innerText.split('라이브러리 ID:').length - 1") or 0
 
-def scroll_load(max_rounds=14):
-    # 카드 수가 2회 연속 안정될 때까지 스크롤 (lazy-load 변동 최소화)
+def scroll_load(max_rounds=22):
+    # 카드 수가 3회 연속 안정될 때까지 스크롤 (Meta lazy-load 변동 최소화)
     stable = 0; prev = -1
     for i in range(max_rounds):
         js("window.scrollTo(0, document.body.scrollHeight)")
-        time.sleep(1.6)
+        time.sleep(2.4)
         cur = card_count()
-        if cur == prev: stable += 1
+        if cur <= prev: stable += 1
         else: stable = 0
-        prev = cur
-        if stable >= 2:
+        prev = max(prev, cur)
+        if stable >= 3:
             break
 
 def safe_newtab(url, tries=3):
@@ -273,13 +290,17 @@ def collect_target(t):
                 continue  # 제3자 노이즈 제거
             if not c.get("advertiser"): c["advertiser"] = t["competitor"]
         c["competitor"] = t["competitor"]
-        if page_mode and not c.get("advertiser"): c["advertiser"] = "nwebtoon"
+        c["category"] = t.get("category","웹툰")
+        if page_mode and not c.get("advertiser"): c["advertiser"] = t["competitor"]
         kept.append(c)
     print(f"  [{label}] 카드 {len(cards)} → 통과 {len(kept)}")
     return kept
 
 def download_img(url, libId):
     if not url: return None
+    fn = f"meta_{libId}.jpg"
+    if os.path.exists(os.path.join(ASSETS, fn)):   # 캐시: 이미 받은 이미지는 스킵
+        return "assets/" + fn
     try:
         b64 = js("""(async()=>{const r=await fetch(%s);const b=await r.blob();
           return await new Promise(res=>{const fr=new FileReader();fr.onloadend=()=>res(fr.result.split(',')[1]);fr.readAsDataURL(b);});})()"""
@@ -306,25 +327,54 @@ for t in TARGETS:
 
 print(f"고유 광고(libId) {len(raw)}건 → 이미지 다운로드 + 분류")
 records = []
+OTT_BRAND = ["디즈니","disney","disneyplus","disneypluskr","tving","티빙","웨이브","wavve","넷플릭스","netflix",
+             "쿠팡플레이","쿠팡 플레이","coupang","coupangplay","픽사","마블","스타워즈","내셔널지오그래픽","훌루","hulu","광고"]
+OTT_JUNK = ["고화질","완결","단행본","할인","무료","광고형","스탠다드","이용권","웹 결제","독점","오리지널","구독","스트리밍"]
+def _ott_brand(s):
+    sl=s.lower().replace(" ","")
+    return any(b.lower().replace(" ","") in sl for b in OTT_BRAND)
+def extract_ott_title(text):
+    for pat in [r"\[([^\[\]]{2,30})\]", r"[<《〈]([^<>《》〈〉]{2,30})[>》〉]", r"[「『]([^」』]{2,30})[」』]"]:
+        for m in re.finditer(pat, text):
+            cand=m.group(1).strip()
+            if cand and not any(j in cand for j in OTT_JUNK) and not _ott_brand(cand):
+                return cand
+    for m in re.finditer(r"#([^\s#]{2,20})", text):
+        cand=m.group(1).strip()
+        if cand and not _ott_brand(cand): return cand
+    return None
+
+def ott_genre(text):
+    if any(k in text for k in ["예능","버라이어티","관찰","코미디","쇼 ","리얼리티"]): return "예능"
+    if any(k in text for k in ["영화","무비","극장"]): return "영화"
+    if any(k in text for k in ["다큐","다큐멘터리"]): return "다큐"
+    if any(k in text for k in ["애니메이션","애니 "]): return "애니"
+    if any(k in text for k in ["스포츠","축구","야구","리그","경기"]): return "스포츠"
+    return "드라마"
+
 for libId, c in raw.items():
     copy = c.get("copy") or ""
-    known = match_known(copy)
-    if known:
-        title, gender, genre = known
-        title_conf = "정확"
+    category = c.get("category","웹툰")
+    if category == "OTT":
+        title = extract_ott_title(copy) or "(브랜드 프로모션)"
+        gender, genre = "all", ott_genre(copy)
+        title_conf = "추정"; ad_kind = "콘텐츠"
     else:
-        title = extract_title(copy) or "(미상)"
-        gender, genre = classify_gender(copy), classify_genre(copy)
-        title_conf = "추정"
-    ad_kind = classify_ad_kind(c.get("advertiser"), copy, bool(known))
-    if ad_kind == "브랜드·뉴스":
-        genre = "브랜드·뉴스"
-        if title == "(미상)": title = "브랜드·뉴스 광고"
+        known = match_known(copy)
+        if known:
+            title, gender, genre = known; title_conf = "정확"
+        else:
+            title = extract_title(copy) or "(미상)"
+            gender, genre = classify_gender(copy), classify_genre(copy); title_conf = "추정"
+        ad_kind = classify_ad_kind(c.get("advertiser"), copy, bool(known))
+        if ad_kind == "브랜드·뉴스":
+            genre = "브랜드·뉴스"
+            if title == "(미상)": title = "브랜드·뉴스 광고"
     img_path = download_img(c.get("img"), libId)
     start = c.get("startDate") or TODAY
     dur = max(1, days_between(start, TODAY) + 1)
     records.append({
-        "id": "meta_" + libId, "competitor": c["competitor"], "media": "meta",
+        "id": "meta_" + libId, "competitor": c["competitor"], "category": category, "media": "meta",
         "work_title": title, "gender": gender, "genre": genre, "title_conf": title_conf,
         "ad_kind": ad_kind,
         "type": "image", "image": img_path, "copy": copy[:140],
@@ -352,14 +402,16 @@ for fn in snaps[-6:]:
     trend.append(row)
 
 # ---- data.js 생성 ----
-comps_present = sorted({r["competitor"] for r in records if r["competitor"] != "네이버웹툰"})
+webtoon_comps = sorted({r["competitor"] for r in records if r.get("category","웹툰")=="웹툰" and r["competitor"]!="네이버웹툰"})
+ott_platforms = sorted({r["competitor"] for r in records if r.get("category")=="OTT"})
 data = {
     "meta": {
         "lastUpdated": TODAY + " 09:00",
         "nextUpdate": "(주 1회 자동)",
         "weekLabel": TODAY,
         "owner": "네이버웹툰",
-        "competitors": comps_present or ["카카오페이지","리디"],
+        "competitors": webtoon_comps or ["카카오페이지","리디"],
+        "ottPlatforms": ott_platforms,
         "sources": {
             "meta":   {"label":"Meta (페북·인스타)","confidence":"정확","note":"Ad Library 실수집"},
             "google": {"label":"Google","confidence":"추정","note":"Transparency Center (수집 예정)"},
@@ -381,5 +433,5 @@ out = "/* AUTO-GENERATED by collector/run_collect.py — 직접 수정 금지 */
 with open(os.path.join(BASE, "data.js"), "w", encoding="utf-8") as f:
     f.write(out)
 
-print(f"=== 완료 === data.js 갱신 · 레코드 {len(records)} · 사업자 {comps_present}")
+print(f"=== 완료 === data.js 갱신 · 레코드 {len(records)} · 웹툰 {webtoon_comps} · OTT {ott_platforms}")
 print(json.dumps({"records": len(records), "byComp": snap["byCompetitor"]}, ensure_ascii=False))

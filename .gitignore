@@ -6,3 +6,4 @@ collector/copies.json
 *_out.txt
 gh_login.txt
 .DS_Store
+collector/*_copies.json

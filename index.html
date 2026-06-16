@@ -160,6 +160,50 @@
   .craft-card.apply li,.craft-list li,.craft-card .desc{word-break:keep-all}
   .craft-card.apply .t{white-space:nowrap}
 
+  /* 플랫폼별 주력 작품 밴드 */
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(208px,1fr));gap:14px}
+  @media(max-width:640px){.pgrid{grid-template-columns:1fr 1fr}}
+  .pcard{background:var(--cardbg);border:1px solid var(--line);border-radius:16px;padding:14px 14px 13px;
+    box-shadow:var(--soft),inset 0 1px 0 rgba(255,255,255,.05)}
+  .phead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pcat{font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:999px;letter-spacing:.03em}
+  .pname{font-size:14.5px;font-weight:800;letter-spacing:-.02em}
+  .pcount{font-family:var(--num);font-size:12.5px;color:var(--muted);margin:8px 0 11px}
+  .pcount b{color:var(--txt);font-size:17px;font-weight:800;margin-right:1px}
+  .pcount span{font-size:11px;margin-right:2px}
+  .pflag{display:flex;gap:11px;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--line2);
+    border-radius:12px;padding:9px}
+  .pthumb{width:52px;height:68px;flex:none;border-radius:8px;overflow:hidden;background:#11141b}
+  .pthumb img{width:100%;height:100%;object-fit:cover}
+  .pnoimg{width:100%;height:100%}
+  .pflagtxt{min-width:0;flex:1}
+  .plabel{font-size:9.5px;color:var(--accent);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .ptitle{font-size:13.5px;font-weight:800;margin:3px 0 5px;line-height:1.25;word-break:keep-all;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .pmeta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+  /* 상세 크리에이티브 뷰 */
+  .dc-head-row{font-size:13.5px;font-weight:700;margin:20px 0 12px;padding-top:16px;border-top:1px solid var(--line2)}
+  .dcwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.dcwrap{grid-template-columns:1fr}}
+  .dc{display:flex;gap:13px;background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .dc-img{position:relative;width:122px;height:160px;flex:none;border-radius:10px;overflow:hidden;background:#0d0f14}
+  .dc-img.noimg{background:linear-gradient(135deg,#2a2f3a,#11141b)}
+  .dc-img img{width:100%;height:100%;object-fit:cover}
+  .dc-media{position:absolute;top:6px;left:6px;background:rgba(0,99,229,.85);color:#fff;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.03em}
+  .dc-play{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:1px 7px;border-radius:999px}
+  .dc-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
+  .dc-titleline{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .dc-title{font-size:15px;font-weight:800;letter-spacing:-.02em;word-break:keep-all;line-height:1.2}
+  .dc-week{font-size:10px;color:var(--dim);flex:none;white-space:nowrap}
+  .dc-sub{font-size:11.5px;color:var(--muted)}
+  .dc-row{display:flex;align-items:center;gap:6px;font-size:11.5px}
+  .dc-row .dc-k{color:var(--dim);width:42px;flex:none;font-weight:600}
+  .dc-copy{font-size:11.5px;color:#cfd4de;line-height:1.45;background:rgba(255,255,255,.03);border-radius:8px;padding:7px 9px;margin-top:2px;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .dc-comment{font-size:11.5px;color:#aef5cf;background:rgba(0,224,112,.08);border:1px solid rgba(0,224,112,.18);border-radius:8px;padding:7px 9px;margin-top:auto;line-height:1.4}
+
   /* weekly change */
   .changes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
   .chg{background:var(--cardbg);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
@@ -214,8 +258,11 @@
     <div class="legend" id="legend"></div>
   </div>
 
-  <!-- KPI -->
-  <div class="kpis" id="kpis"></div>
+  <!-- 플랫폼별 주력 작품 (최상단 개요) -->
+  <div class="panel" id="platformPanel">
+    <div class="sec-title">📌 플랫폼별 주력 작품 · 소재 현황 <span class="dim" style="font-weight:400">— 웹툰/웹소설 + OTT</span></div>
+    <div class="pgrid" id="platformBand"></div>
+  </div>
 
   <!-- 1. 이번주 변경 요약 (최상단) -->
   <div class="panel" style="margin-top:18px">
@@ -233,6 +280,8 @@
   <div class="panel">
     <div class="sec-title"><span class="num">3</span> 네웹KR 소재 제작 적용 인사이트 <span class="dim" style="font-weight:400">— 경쟁사 소재에서 도출</span></div>
     <div class="craft" id="craftInsights"></div>
+    <div class="dc-head-row">📋 위닝 소재 상세 분석 <span class="dim" style="font-weight:400">— 장기 운영 · 최근 7일 신규 대표 소재</span></div>
+    <div class="dcwrap" id="craftDetail"></div>
   </div>
 
   <!-- 4. 타임라인 -->
@@ -278,6 +327,7 @@
   <div class="panel">
     <div class="sec-title"><span class="num">7</span> 광고 소재 갤러리</div>
     <div class="filters" id="filters">
+      <select id="fCat"></select>
       <select id="fCompetitor"></select>
       <select id="fKind"></select>
       <select id="fMedia"></select>
@@ -299,7 +349,8 @@
 <script>
 const D = window.AD_DATA;
 const TODAY = D.dateRange.max;
-const COMP_COLORS = {"네이버웹툰":"var(--naver)","카카오페이지":"var(--kakao)","리디":"var(--ridi)"};
+const COMP_COLORS = {"네이버웹툰":"var(--naver)","카카오페이지":"var(--kakao)","리디":"var(--ridi)",
+  "넷플릭스":"#e50914","티빙":"#ff153c","웨이브":"#1351f9","쿠팡플레이":"#19d4a6","디즈니+":"#0063e5"};
 const MEDIA_COLORS = {google:"#ea4335", meta:"#0866ff", tiktok:"#25f4ee", kakao:"#ffcd00"};
 const MEDIA_LABEL = {google:"Google", meta:"Meta", tiktok:"TikTok", kakao:"Kakao"};
 const GENDER_COLORS = {female:"var(--female)", male:"var(--male)", all:"var(--all)"};
@@ -342,26 +393,49 @@ document.getElementById("legend").innerHTML =
       · <span style="color:${cc}">${s.confidence}</span> <span class="dim">(${s.note})</span></span>`;
   }).join("");
 
-// =================== 2. KPI ===================
+// =================== 플랫폼별 주력 작품 밴드 ===================
+// 주력 작품 = 소재 최다 work_title (브랜드/프로모션/장르어 제외)
+const FLAGSHIP_EXCLUDE = new Set(["(미상)","(브랜드 프로모션)","브랜드·뉴스 광고","(로판 추천)","만화추천",
+  "애니","드라마","예능","영화","다큐","스포츠","기타","첫 달 결제시, 다음달 100원"]);
+function flagshipOf(comp){
+  const act = activeOf(comp);
+  const cnt = {};
+  act.forEach(c=>{ if(!FLAGSHIP_EXCLUDE.has(c.work_title)) cnt[c.work_title]=(cnt[c.work_title]||0)+1; });
+  const top = Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+  if(!top) return null;
+  const sample = act.find(c=>c.work_title===top[0] && c.image) || act.find(c=>c.work_title===top[0]);
+  return {title: top[0], count: top[1], genre: sample?sample.genre:"", image: sample?sample.image:null, gender: sample?sample.gender:"all"};
+}
 (function(){
-  const last = D.weeklyTrend[D.weeklyTrend.length-1];
-  const html = groups.map(comp=>{
+  const order = [OURS, ...competitors, ...(D.meta.ottPlatforms||[])];
+  const seen=new Set();
+  const html = order.filter(p=>p && !seen.has(p) && seen.add(p)).map(comp=>{
     const act = activeOf(comp);
-    const works = worksOf(act);
-    const newCnt = act.filter(isNew).length;
-    const prev = last[comp] || 0;
-    const wow = act.length - prev;
-    const cls = comp===OURS?"k-naver":comp==="카카오페이지"?"k-kakao":"k-ridi";
-    const wowTxt = wow===0?`<span class="muted">±0</span>`:
-       wow>0?`<span class="up">▲ ${wow}</span>`:`<span class="down">▼ ${Math.abs(wow)}</span>`;
-    const tag = comp===OURS?` <span class="dim">(우리)</span>`:"";
-    return `<div class="kpi ${cls}">
-      <div class="lab">${comp}${tag}</div>
-      <div class="big">${act.length}<span style="font-size:13px;color:var(--muted)"> 소재</span></div>
-      <div class="sub">작품 ${works}편 · 이번주 신규 <b class="up">${newCnt}</b> · 전주대비 ${wowTxt}</div>
+    if(!act.length && comp!==OURS) return "";
+    const cat = (act[0] && act[0].category) || (competitors.includes(comp)||comp===OURS?"웹툰":"OTT");
+    const fs = flagshipOf(comp);
+    const col = COMP_COLORS[comp] || "var(--accent)";
+    const isOurs = comp===OURS;
+    const catBadge = cat==="OTT"
+      ? `<span class="pcat" style="background:rgba(0,99,229,.15);color:#7ab8ff">OTT</span>`
+      : `<span class="pcat" style="background:rgba(0,224,112,.12);color:var(--accent)">웹툰·웹소설</span>`;
+    const flagThumb = fs && fs.image
+      ? `<img src="${fs.image}" loading="lazy" onerror="this.style.visibility='hidden'"/>`
+      : `<div class="pnoimg" style="background:linear-gradient(135deg,${col},#11141b)"></div>`;
+    return `<div class="pcard" style="border-top:3px solid ${col}">
+      <div class="phead">${catBadge}<span class="pname">${comp}${isOurs?' <span class="dim">(우리)</span>':''}</span></div>
+      <div class="pcount"><b>${act.length}</b><span>소재</span> · <b>${worksOf(act)}</b><span>작품</span></div>
+      <div class="pflag">
+        <div class="pthumb">${flagThumb}</div>
+        <div class="pflagtxt">
+          <div class="plabel">주력 작품</div>
+          <div class="ptitle">${fs?fs.title:'<span class="dim">—</span>'}</div>
+          ${fs?`<div class="pmeta"><span class="tag" style="color:${GENRE_COLORS[fs.genre]||'#ccc'}">${fs.genre}</span> <span class="dim">소재 ${fs.count}건</span></div>`:''}
+        </div>
+      </div>
     </div>`;
   }).join("");
-  document.getElementById("kpis").innerHTML = html;
+  document.getElementById("platformBand").innerHTML = html || '<div class="muted">데이터 없음</div>';
 })();
 
 // =================== 3. 매체별 스택 막대 ===================
@@ -434,8 +508,8 @@ document.getElementById("legend").innerHTML =
 
 // =================== 4b. 장르 막대 (그룹별 비교) ===================
 (function(){
-  const allGenres = [...new Set(D.creatives.map(c=>c.genre))];
-  // 활성 소재 기준 그룹×장르 카운트
+  const allGenres = [...new Set(D.creatives.filter(c=>(c.category||"웹툰")==="웹툰").map(c=>c.genre))];
+  // 활성 소재 기준 그룹×장르 카운트 (웹툰 장르만)
   const maxV = Math.max(...allGenres.map(gn=>Math.max(...groups.map(comp=>activeOf(comp).filter(c=>c.genre===gn).length))))||1;
   let html = "";
   allGenres.forEach(gn=>{
@@ -482,7 +556,9 @@ document.getElementById("legend").innerHTML =
 // =================== 5. 갤러리 + 필터 ===================
 (function(){
   const opt=(arr,all)=>[`<option value="">${all}</option>`,...arr.map(v=>`<option value="${v}">${v}</option>`)].join("");
-  document.getElementById("fCompetitor").innerHTML = opt(groups,"전체 사업자");
+  const allPlatforms = [...new Set(D.creatives.map(c=>c.competitor))];
+  document.getElementById("fCat").innerHTML = `<option value="">전체 카테고리</option><option value="웹툰">웹툰·웹소설</option><option value="OTT">OTT</option>`;
+  document.getElementById("fCompetitor").innerHTML = opt(allPlatforms,"전체 플랫폼");
   document.getElementById("fMedia").innerHTML = opt(Object.keys(MEDIA_LABEL).map(m=>m),"전체 매체").replace(/>(\w+)</g,(x,m)=>`>${MEDIA_LABEL[m]||m}<`);
   // media labels fix:
   document.getElementById("fMedia").innerHTML = `<option value="">전체 매체</option>`+Object.keys(MEDIA_LABEL).map(m=>`<option value="${m}">${MEDIA_LABEL[m]}</option>`).join("");
@@ -505,9 +581,9 @@ document.getElementById("legend").innerHTML =
   }
   let CURRENT = [];
   function render(){
-    const fc=fCompetitor.value, fk=fKind.value, fm=fMedia.value, fg=fGender.value, fge=fGenre.value, fa=fActive.value, q=fSearch.value.trim();
+    const fcat=fCat.value, fc=fCompetitor.value, fk=fKind.value, fm=fMedia.value, fg=fGender.value, fge=fGenre.value, fa=fActive.value, q=fSearch.value.trim();
     let list = D.creatives.filter(c=>
-      (!fc||c.competitor===fc)&&(!fk||c.ad_kind===fk)&&(!fm||c.media===fm)&&(!fg||c.gender===fg)&&(!fge||c.genre===fge)&&
+      (!fcat||(c.category||"웹툰")===fcat)&&(!fc||c.competitor===fc)&&(!fk||c.ad_kind===fk)&&(!fm||c.media===fm)&&(!fg||c.gender===fg)&&(!fge||c.genre===fge)&&
       (!fa|| (fa==="active"?c.active:!c.active))&&(!q||(c.work_title||"").includes(q)||(c.copy||"").includes(q)));
     const s=fSort.value;
     list.sort((a,b)=> s==="dur"? dur(b)-dur(a) : s==="comp"? a.competitor.localeCompare(b.competitor) : dParse(b.first_seen)-dParse(a.first_seen));
@@ -539,7 +615,7 @@ document.getElementById("legend").innerHTML =
         </div>
       </div>`).join("") || `<div class="muted">조건에 맞는 소재가 없습니다.</div>`;
   }
-  ["fCompetitor","fKind","fMedia","fGender","fGenre","fActive","fSort"].forEach(id=>document.getElementById(id).addEventListener("change",render));
+  ["fCat","fCompetitor","fKind","fMedia","fGender","fGenre","fActive","fSort"].forEach(id=>document.getElementById(id).addEventListener("change",render));
   document.getElementById("fSearch").addEventListener("input",render);
 
   // CSV 내보내기 (현재 필터된 목록)
@@ -657,6 +733,32 @@ document.getElementById("legend").innerHTML =
       <div class="desc">위 분석 → 바로 적용 가능한 액션</div>
       <ul>${apply.map(a=>`<li>${a}</li>`).join("")}</ul>
     </div>`;
+
+  // ===== 상세 크리에이티브 뷰 (PDF 형식) =====
+  const fmtLong = s => (s||"").replace(/HTTPS?:\S+/gi,"").replace(/LINK-\S+|FB\.COM|WWW\.\S+|\d:\d\d ?\/ ?\d:\d\d/gi,"").replace(/상세 정보 보기|세부 사항 보기|드롭다운 열기|요약|페이지는.*?함께합니다|\d+개에서 이 크리에이티브.*?사용합니다/g,"").replace(/\s+/g," ").trim().slice(0,120);
+  function hooksOf(c){ return Object.entries(HOOKS).filter(([k,kws])=>kws.some(w=>(c.copy||"").includes(w))).map(([k])=>k); }
+  function detailCard(c){
+    const hk = hooksOf(c);
+    const kw = [GENDER_LABEL[c.gender]!=="전체"?GENDER_LABEL[c.gender]:null, ...hk.slice(0,2)].filter(Boolean);
+    const comment = hk.length? `${hk.slice(0,2).join(" + ")} 후킹을 활용한 소재` : "브랜드·카탈로그형 소재 (작품 직접 소구 적음)";
+    return `<div class="dc">
+      <div class="dc-img">${c.image?`<img src="${c.image}" loading="lazy" onerror="this.parentElement.classList.add('noimg')">`:""}<span class="dc-media">Meta 단컷</span>${c.type==="video"?`<span class="dc-play">▶</span>`:""}</div>
+      <div class="dc-body">
+        <div class="dc-titleline"><span class="dc-title">${c.work_title}</span><span class="dc-week">노출 ${dur(c)}일${isNew(c)?' · <b style="color:var(--accent)">🆕 신규</b>':''}</span></div>
+        <div class="dc-sub"><b style="color:${COMP_COLORS[c.competitor]||'#fff'}">${c.competitor}</b> · ${MEDIA_LABEL[c.media]} · <span class="conf ${c.confidence}">●${c.confidence}</span></div>
+        <div class="dc-row"><span class="dc-k">장르</span><span class="tag" style="color:${GENRE_COLORS[c.genre]||'#ccc'}">${c.genre}</span></div>
+        <div class="dc-row"><span class="dc-k">키워드</span>${kw.length?kw.map(k=>`<span class="tag">${k}</span>`).join(""):'<span class="dim">—</span>'}</div>
+        <div class="dc-copy">“${fmtLong(c.copy)}…”</div>
+        <div class="dc-comment">💡 ${comment}</div>
+      </div>
+    </div>`;
+  }
+  const ALLC = D.creatives.filter(c=>c.competitor!==OURS && c.image
+     && !["(미상)","(브랜드 프로모션)","브랜드·뉴스 광고"].includes(c.work_title));
+  const longDetail = distinct(ALLC.slice().sort((a,b)=>dur(b)-dur(a))).slice(0,4);
+  const newDetail = distinct(ALLC.filter(isNew).sort((a,b)=>dParse(b.first_seen)-dParse(a.first_seen)))
+     .filter(c=>!longDetail.find(x=>x.work_title===c.work_title)).slice(0,2);
+  document.getElementById("craftDetail").innerHTML = [...longDetail,...newDetail].map(detailCard).join("");
 })();
 
 // =================== 7. 인사이트 (자동 생성) ===================
