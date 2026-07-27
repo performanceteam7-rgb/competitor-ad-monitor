@@ -191,7 +191,9 @@
   .dc-img{position:relative;width:122px;height:160px;flex:none;border-radius:10px;overflow:hidden;background:#0d0f14}
   .dc-img.noimg{background:linear-gradient(135deg,#2a2f3a,#11141b)}
   .dc-img img{width:100%;height:100%;object-fit:cover}
-  .dc-media{position:absolute;top:6px;left:6px;background:rgba(0,99,229,.85);color:#fff;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.03em}
+  .dc-img.carousel{width:244px;display:flex;gap:2px;overflow-x:auto;scroll-snap-type:x mandatory}
+  .dc-img.carousel img{width:80px;height:100%;flex:none;object-fit:cover;scroll-snap-align:start}
+  .dc-media{position:absolute;top:6px;left:6px;background:rgba(0,99,229,.85);color:#fff;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:5px;letter-spacing:.03em;z-index:2}
   .dc-play{position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:1px 7px;border-radius:999px}
   .dc-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:5px}
   .dc-titleline{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -346,6 +348,7 @@
 </div>
 
 <script src="data.js"></script>
+<script src="vision-comments.js"></script>
 <script>
 const D = window.AD_DATA;
 const TODAY = D.dateRange.max;
@@ -740,9 +743,17 @@ function flagshipOf(comp){
   function detailCard(c){
     const hk = hooksOf(c);
     const kw = [GENDER_LABEL[c.gender]!=="전체"?GENDER_LABEL[c.gender]:null, ...hk.slice(0,2)].filter(Boolean);
-    const comment = hk.length? `${hk.slice(0,2).join(" + ")} 후킹을 활용한 소재` : "브랜드·카탈로그형 소재 (작품 직접 소구 적음)";
+    const fallback = hk.length? `${hk.slice(0,2).join(" + ")} 후킹을 활용한 소재` : "브랜드·카탈로그형 소재 (작품 직접 소구 적음)";
+    const vc = (typeof VISION_COMMENTS!=="undefined" && VISION_COMMENTS[c.libId]) || null;
+    const comment = vc || fallback;
+    const fmt = c.format || (c.type==="video"?"영상":"단컷");
+    const imgs = (c.images && c.images.length ? c.images : (c.image?[c.image]:[]));
+    const isCarousel = fmt==="캐루셀" && imgs.length>1;
+    const imgHtml = isCarousel
+      ? imgs.map(src=>`<img src="${src}" loading="lazy">`).join("")
+      : (imgs[0]?`<img src="${imgs[0]}" loading="lazy" onerror="this.parentElement.classList.add('noimg')">`:"");
     return `<div class="dc">
-      <div class="dc-img">${c.image?`<img src="${c.image}" loading="lazy" onerror="this.parentElement.classList.add('noimg')">`:""}<span class="dc-media">Meta 단컷</span>${c.type==="video"?`<span class="dc-play">▶</span>`:""}</div>
+      <div class="dc-img${isCarousel?' carousel':''}">${imgHtml}<span class="dc-media">Meta ${fmt}${isCarousel?` ·${imgs.length}컷`:""}</span>${fmt==="영상"?`<span class="dc-play">▶</span>`:""}</div>
       <div class="dc-body">
         <div class="dc-titleline"><span class="dc-title">${c.work_title}</span><span class="dc-week">노출 ${dur(c)}일${isNew(c)?' · <b style="color:var(--accent)">🆕 신규</b>':''}</span></div>
         <div class="dc-sub"><b style="color:${COMP_COLORS[c.competitor]||'#fff'}">${c.competitor}</b> · ${MEDIA_LABEL[c.media]} · <span class="conf ${c.confidence}">●${c.confidence}</span></div>

@@ -217,11 +217,23 @@ EXTRACT_JS = r"""
     const txt = (card.innerText||"").replace(/\s+/g,' ');
     const idm = txt.match(/라이브러리 ID:\s*(\d+)/);
     if (!idm || seen.has(idm[1])) continue; seen.add(idm[1]);
-    // 대표 이미지: 프로필(t51.2885-19) 제외, 가장 큰 것
-    const imgs = [...card.querySelectorAll('img[src*="scontent"]')]
-      .filter(im => !im.src.includes('t51.2885-19'))
+    // 소재 형식 판별: 영상(video 태그) > 캐루셀(실제 크리에이티브 이미지 2장+) > 단컷
+    const video = card.querySelector('video');
+    // 실제 크리에이티브 이미지: 프로필(t51.2885-19) 제외 + 작은 아이콘(가로/세로<150) 제외
+    const realImgs = [...card.querySelectorAll('img[src*="scontent"]')]
+      .filter(im => !im.src.includes('t51.2885-19') && im.naturalWidth>=150 && im.naturalHeight>=150)
       .sort((a,b)=> (b.naturalWidth*b.naturalHeight) - (a.naturalWidth*a.naturalHeight));
-    const img = imgs[0] || card.querySelector('img[src*="scontent"]');
+    let format, images;
+    if (video) {
+      format = '영상';
+      images = video.poster ? [video.poster] : [];
+    } else if (realImgs.length >= 2) {
+      format = '캐루셀';
+      images = realImgs.slice(0, 8).map(im => im.src);
+    } else {
+      format = '단컷';
+      images = realImgs.length ? [realImgs[0].src] : [];
+    }
     const datem = txt.match(/(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.[^a-zA-Z]*?게재 시작/);
     const advm = txt.match(/(?:광고 상세 정보 보기|세부 사항 보기)\s+([^\s]+)\s+광고/);
     // 실제 카피 = 광고주명 + ' 광고 ' 뒤부터 (UI 잡음 제거)
@@ -231,7 +243,8 @@ EXTRACT_JS = r"""
       libId: idm[1],
       startDate: datem ? datem[1]+'-'+String(datem[2]).padStart(2,'0')+'-'+String(datem[3]).padStart(2,'0') : null,
       advertiser: advm ? advm[1] : null,
-      img: img ? img.src : null,
+      format: format,
+      images: images,
       copy: copym ? copym[1].trim() : txt.slice(0,160)
     });
   }
@@ -296,9 +309,8 @@ def collect_target(t):
     print(f"  [{label}] 카드 {len(cards)} → 통과 {len(kept)}")
     return kept
 
-def download_img(url, libId):
+def download_img(url, fn):
     if not url: return None
-    fn = f"meta_{libId}.jpg"
     if os.path.exists(os.path.join(ASSETS, fn)):   # 캐시: 이미 받은 이미지는 스킵
         return "assets/" + fn
     try:
@@ -306,12 +318,20 @@ def download_img(url, libId):
           return await new Promise(res=>{const fr=new FileReader();fr.onloadend=()=>res(fr.result.split(',')[1]);fr.readAsDataURL(b);});})()"""
           % json.dumps(url))
         if not b64: return None
-        fn = f"meta_{libId}.jpg"
         with open(os.path.join(ASSETS, fn), "wb") as f:
             f.write(base64.b64decode(b64))
         return "assets/" + fn
     except Exception as e:
-        print("    이미지 실패", libId, e); return None
+        print("    이미지 실패", fn, e); return None
+
+def download_images(urls, libId):
+    """캐루셀은 여러 장(최대 8), 단컷·영상은 1장. 인덱스 붙여 저장."""
+    paths = []
+    for i, url in enumerate(urls or []):
+        fn = f"meta_{libId}.jpg" if i == 0 else f"meta_{libId}_{i}.jpg"
+        p = download_img(url, fn)
+        if p: paths.append(p)
+    return paths
 
 def days_between(a, b):
     from datetime import date
@@ -370,14 +390,17 @@ for libId, c in raw.items():
         if ad_kind == "브랜드·뉴스":
             genre = "브랜드·뉴스"
             if title == "(미상)": title = "브랜드·뉴스 광고"
-    img_path = download_img(c.get("img"), libId)
+    fmt = c.get("format") or "단컷"
+    img_paths = download_images(c.get("images"), libId)
+    img_path = img_paths[0] if img_paths else None
     start = c.get("startDate") or TODAY
     dur = max(1, days_between(start, TODAY) + 1)
     records.append({
         "id": "meta_" + libId, "competitor": c["competitor"], "category": category, "media": "meta",
         "work_title": title, "gender": gender, "genre": genre, "title_conf": title_conf,
         "ad_kind": ad_kind,
-        "type": "image", "image": img_path, "copy": copy[:140],
+        "type": "video" if fmt == "영상" else "image", "format": fmt,
+        "image": img_path, "images": img_paths, "copy": copy[:140],
         "advertiser": c.get("advertiser"), "libId": libId,
         "first_seen": start, "last_seen": TODAY, "duration_days": dur, "active": True,
         "source": "meta", "confidence": "정확"  # 메타데이터는 정확, 분류(성향/장르/제목)는 추정
