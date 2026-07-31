@@ -35,8 +35,10 @@ TARGETS = [
      "advertiser_tokens": ["ridi", "리디"]},
     {"competitor": "리디",         "category":"웹툰", "q": "리디",
      "advertiser_tokens": ["ridi", "리디"]},
-    # 자사: 공식 페이지(facebook.com/nwebtoon) — page_id 기반
+    # 자사: 공식 페이지(facebook.com/nwebtoon) — page_id 기반(정밀) + 키워드 검색(경쟁사와 동일 기준, 다른 계정/서브페이지 소재까지 포괄)
     {"competitor": "네이버웹툰",   "category":"웹툰", "page_id": "700492680053373"},
+    {"competitor": "네이버웹툰",   "category":"웹툰", "q": "네이버웹툰",
+     "advertiser_tokens": ["네이버웹툰", "webtoon", "naver webtoon", "nwebtoon", "line webtoon"]},
     # ── OTT (page_id 기반, 공식 페이지 전체) ──
     {"competitor": "넷플릭스",     "category":"OTT", "page_id": "927701797321428"},
     {"competitor": "티빙",         "category":"OTT", "page_id": "157630184278168"},
