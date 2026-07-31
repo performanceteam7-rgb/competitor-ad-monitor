@@ -270,6 +270,41 @@ def scroll_load(max_rounds=22):
         if stable >= 3:
             break
 
+def expand_grouped(max_rounds=15):
+    # Meta는 동일 크리에이티브+문구가 여러 광고에 재사용되면 "N개에서 이 크리에이티브 및 문구를
+    # 사용합니다" 카드 1장으로 묶어서 보여줌 -> "요약 세부 사항 보기" 클릭해야 나머지가 실제로 펼쳐짐.
+    # 안 펼치면 활성 소재수가 실제보다 크게 적게 집계됨(실측: 네이버웹툰 10건 -> 펼친 후 19건).
+    EXPAND_JS = r"""
+    (() => {
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const idNodes = []; let n;
+      while (n = walker.nextNode()) { if (/라이브러리 ID:\s*\d+/.test(n.nodeValue)) idNodes.push(n); }
+      const seenCards = new Set();
+      for (const tn of idNodes) {
+        let el = tn.parentElement, card = null;
+        for (let i=0;i<12 && el;i++){
+          if (el.querySelector && el.querySelector('img[src*="scontent"]')) { card = el; break; }
+          el = el.parentElement;
+        }
+        if (!card || seenCards.has(card)) continue; seenCards.add(card);
+        const txt = card.innerText||"";
+        if (/개에서 이 크리에이티브/.test(txt) && !card.dataset.expanded) {
+          const btn = [...card.querySelectorAll('div[role="button"]')].find(x=>(x.innerText||'').includes('요약 세부 사항 보기'));
+          if (btn) { card.dataset.expanded = '1'; btn.click(); return true; }
+        }
+      }
+      return false;
+    })()
+    """
+    for _ in range(max_rounds):
+        clicked = js(EXPAND_JS)
+        if not clicked:
+            break
+        time.sleep(1.8)
+        try: js("window.scrollTo(0, document.body.scrollHeight)")
+        except Exception: pass
+        time.sleep(1.3)
+
 def safe_newtab(url, tries=3):
     for i in range(tries):
         try:
@@ -294,6 +329,8 @@ def collect_target(t):
         print(f"  [{label}] 네비게이션 실패 — 스킵"); return []
     time.sleep(3)
     scroll_load(6)
+    expand_grouped()
+    scroll_load(6)  # 펼치기로 늘어난 카드까지 다시 안정화
     cards = js(EXTRACT_JS) or []
     kept = []
     for c in cards:
